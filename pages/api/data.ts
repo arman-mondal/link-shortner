@@ -3,7 +3,7 @@ import { getDatabase } from '../../lib/mongodb';
 
 type Data = {
   message: string;
-  data?: any;
+  data?: Record<string, unknown> | Array<Record<string, unknown>>;
 };
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
@@ -23,7 +23,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         const newData = req.body;
         const result = await db.collection(collectionName).insertOne(newData);
         const insertedData = await db.collection(collectionName).findOne({ _id: result.insertedId });
-        res.status(201).json({ message: 'Data inserted', data: insertedData });
+        if (insertedData) {
+          res.status(201).json({ message: 'Data inserted', data: insertedData });
+        } else {
+          res.status(500).json({ message: 'Failed to retrieve inserted data' });
+        }
         break;
       }
       default:

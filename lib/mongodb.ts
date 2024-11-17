@@ -12,11 +12,11 @@ let clientPromise: Promise<MongoClient>;
 
 if (process.env.NODE_ENV === 'development') {
   // Use a global variable to ensure the client is reused during hot-reloading
-  if (!(global as any)._mongoClientPromise) {
+  if (!(global as typeof globalThis & { _mongoClientPromise?: Promise<MongoClient> })._mongoClientPromise) {
     client = new MongoClient(uri, options);
-    (global as any)._mongoClientPromise = client.connect();
+    (global as typeof globalThis & { _mongoClientPromise?: Promise<MongoClient> })._mongoClientPromise = client.connect();
   }
-  clientPromise = (global as any)._mongoClientPromise;
+  clientPromise = (global as typeof globalThis & { _mongoClientPromise?: Promise<MongoClient> })._mongoClientPromise || Promise.reject(new Error('MongoClient promise is undefined'));
 } else {
   // Create a new client for production
   client = new MongoClient(uri, options);
